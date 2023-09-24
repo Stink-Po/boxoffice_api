@@ -2,7 +2,7 @@ import time
 from bs4 import BeautifulSoup
 import requests
 import calendar
-from .validator import Validator
+from boxoffice_api.validator import  Validator
 
 
 class BoxOffice:
@@ -58,7 +58,6 @@ class BoxOffice:
         validator = Validator()
         if validator.check_weekly(year=year, week=week):
             weekly_url = f"https://www.boxofficemojo.com/weekly/{year}W{week}/?ref_=bo_wly_table_1"
-            weekly_url = "https://www.boxofficemojo.com/weekly/2023W37/?ref_=bo_wly_table_1"
             result = self._collect_weekly(url=weekly_url)
             return result
 
@@ -125,7 +124,7 @@ class BoxOffice:
             table = daily_soap.find("table", "mojo-body-table")
             table_rows = table.find_all("tr")
 
-            for index, row in enumerate(table_rows):
+            for index, row in enumerate(table_rows[:11]):
                 if index != 0:
                     td_element = row.find_all("td")
                     local_list = []
@@ -169,7 +168,6 @@ class BoxOffice:
                             "imdbID": api_response['imdbID'],
 
                         }
-                        print(local_dict)
                         self._output.append(local_dict)
                     else:
                         local_dict = {
@@ -201,7 +199,7 @@ class BoxOffice:
             table = daily_soap.find("table", "mojo-body-table")
             table_rows = table.find_all("tr")
 
-            for index, row in enumerate(table_rows):
+            for index, row in enumerate(table_rows[:11]):
                 if index != 0:
                     td_element = row.find_all("td")
                     local_list = []
@@ -245,7 +243,6 @@ class BoxOffice:
                             "imdbID": api_response['imdbID'],
 
                         }
-                        print(local_dict)
                         self._output.append(local_dict)
                     else:
                         local_dict = {
@@ -265,7 +262,9 @@ class BoxOffice:
                         }
                         self._output.append(local_dict)
 
+
             return self._output
+
         except Exception as e:
             print(f"Error occurred: {e} Check Your Connection or wait  afew Second")
 
@@ -277,7 +276,7 @@ class BoxOffice:
             table = daily_soap.find("table", "mojo-body-table")
             table_rows = table.find_all("tr")
 
-            for index, row in enumerate(table_rows):
+            for index, row in enumerate(table_rows[:11]):
                 if index != 0:
                     td_element = row.find_all("td")
                     local_list = []
@@ -321,7 +320,7 @@ class BoxOffice:
                             "imdbID": api_response['imdbID'],
 
                         }
-                        print(local_dict)
+
                         self._output.append(local_dict)
                     else:
                         local_dict = {
@@ -353,7 +352,7 @@ class BoxOffice:
             table = daily_soap.find("table", "mojo-body-table")
             table_rows = table.find_all("tr")
 
-            for index, row in enumerate(table_rows):
+            for index, row in enumerate(table_rows[:11]):
                 if index != 0:
                     td_element = row.find_all("td")
                     local_list = []
@@ -393,7 +392,6 @@ class BoxOffice:
                             "imdbID": api_response['imdbID'],
 
                         }
-                        print(local_dict)
                         self._output.append(local_dict)
                     else:
                         local_dict = {
@@ -412,3 +410,5 @@ class BoxOffice:
             return self._output
         except Exception as e:
             print(f"Error occurred: {e} Check Your Connection or wait  afew Second")
+
+

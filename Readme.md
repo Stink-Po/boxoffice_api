@@ -12,7 +12,7 @@ You can install this package using pip:
 ### Usage
 
 Here's how you can use this package to retrieve box office information:
-if You want to have more information from Movies you can get free API key From "https://www.omdbapi.com/"
+if You want to have more information from Movies, you can get free API key From "https://www.omdbapi.com/"
 free account have 1000 daily requests
 
     from boxoffice_api import BoxOffice 
@@ -40,15 +40,15 @@ Please replace "your_api_key" with your actual OMDb API key if you want to fetch
 
 BoxOffice(api_key=None): Initializes the BoxOffice class with an optional OMDb API key.
 
-get_daily(date): Retrieves daily box office information for a specific date.
+get_daily(date): Retrieve daily box office information for a specific date.
 
 get_weekend(year, week): Retrieves weekend box office information for a specific year and week.
 
-get_weekly(year, week): Retrieves weekly box office information for a specific year and week.
+get_weekly(year, week): Retrieve weekly box office information for a specific year and week.
 
-get_monthly(year, month): Retrieves monthly box office information for a specific year and month.
+get_monthly(year, month): Retrieve monthly box office information for a specific year and month.
 
-get_season(year, season): Retrieves seasonal box office information for a specific year and season.
+get_season(year, season): Retrieve seasonal box office information for a specific year and season.
 
 get_quarterly(quarterly, year): Retrieves quarterly box office information for a specific quarter and year.
 
