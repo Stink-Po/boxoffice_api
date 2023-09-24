@@ -58,6 +58,7 @@ class BoxOffice:
         validator = Validator()
         if validator.check_weekly(year=year, week=week):
             weekly_url = f"https://www.boxofficemojo.com/weekly/{year}W{week}/?ref_=bo_wly_table_1"
+            weekly_url = "https://www.boxofficemojo.com/weekly/2023W37/?ref_=bo_wly_table_1"
             result = self._collect_weekly(url=weekly_url)
             return result
 

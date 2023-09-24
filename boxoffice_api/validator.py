@@ -34,9 +34,8 @@ class Validator:
                 raise ValueError("week must be less than 52")
             if int(dt.utcnow().year) < year:
                 raise ValueError(f"Inserted Year is Invalid")
-            if current_year == year:
-                if int(dt.now().strftime("%U")) - 1 < week:
-                    raise ValueError("Provided week is Out of range")
+            if current_year == year and int(dt.now().strftime("%U")) - 1 < week:
+                raise ValueError("Provided week is Out of range")
 
             else:
                 self.is_valued = True
