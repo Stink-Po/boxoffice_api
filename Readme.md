@@ -1,5 +1,7 @@
 ### **Unofficial Python API for Box Office Mojo**
 
+**update Note**
+you can now get a panda Dataframe as output
 
 This Python package allows you to retrieve box office information from Box Office Mojo. It provides data on daily, weekly, monthly, seasonal, quarterly, and yearly box office performance for movies. Additionally, it can fetch additional movie details like posters, descriptions, directors, and more from OMDb API when an API key is provided.
 
@@ -13,17 +15,24 @@ You can install this package using pip:
 
 Here's how you can use this package to retrieve box office information:
 if You want to have more information from Movies, you can get free API key From "https://www.omdbapi.com/"
-free account have 1000 daily requests
+free account have 1000 daily requests we highly recommend if you want to use this package for collecting data and don't want to use thing like movie posters etc . don't use the API key
 
     from boxoffice_api import BoxOffice 
 
 **if you have API Key**  
 
-    class box_office = BoxOffice(api_key="your_api_key") # Get daily box office information for a specific date 
+    box_office = BoxOffice(api_key="your_api_key") # Get daily box office information for a specific date 
 
 **if you want to use the package without API Key**
 
-    class box_office = BoxOffice()
+    box_office = BoxOffice()
+
+**if you want to use the package without API key and get panda Dataframe as output**
+
+
+    box_office = BoxOffice(outputformat="DF")
+
+
 
 #### **Getting Information**
     daily_data = box_office.get_daily("2023-09-21") # Get weekend box office information for a specific year and week 

@@ -33,7 +33,7 @@ class Validator:
             if week > 52:
                 raise ValueError("week must be less than 52")
             if int(dt.utcnow().year) < year:
-                raise ValueError(f"Inserted Year is Invalid")
+                raise ValueError("Inserted Year is Invalid")
             if current_year == year and int(dt.now().strftime("%U")) - 1 < week:
                 raise ValueError("Provided week is Out of range")
 
@@ -104,10 +104,30 @@ class Validator:
     def season_validate(self, year: int, season: str):
         if self.validate_year(year=year):
             seasons = ["spring", "summer", "fall", "winter"]
-            if season.lower() in seasons:
+            if season.casefold() in seasons:
                 self.is_valued = True
             else:
                 self.is_valued = False
                 raise ValueError("seasons are 'spring' 'summer' 'fall' 'winter'")
 
             return self.is_valued
+
+    def check_integer(self, value: int):
+        return isinstance(value, int)
+
+    def check_year(self, year: int):
+        if self.check_integer(value=year):
+            return 1982 < year < int(dt.utcnow().year)
+        else:
+            print("Year Must be an Integer")
+
+    def check_month(self, month: int):
+        if self.check_integer(value=month):
+            return 0 < month < 13
+        else:
+            print("Month Must be an Integer")
+
+    def check_week(self, week: int):
+        if self.check_integer(value=week):
+            return 0 < week < 53
+

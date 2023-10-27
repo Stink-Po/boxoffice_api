@@ -1,8 +1,8 @@
-import time
+from boxoffice_api.boxoffice_api.validator import Validator
 from bs4 import BeautifulSoup
 import requests
-import calendar
-from boxoffice_api.validator import  Validator
+import pandas as pd
+import concurrent.futures
 
 
 class BoxOffice:
@@ -10,7 +10,7 @@ class BoxOffice:
     A package For getting Box office Information
     """
 
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=None, outputformat: str = "dict"):
         """
         initial class
         :param api_key: an api key from https://www.omdbapi.com/ if you provide an api key, you will also get
@@ -19,21 +19,42 @@ class BoxOffice:
         """
         self._api_key = api_key
         self._output = []
+        self._output_format = outputformat
+        self.validate = Validator()
 
-    def get_daily(self, date):
+    @staticmethod
+    def check_results(url):
+        try:
+            response = requests.get(url).text
+            daily_soap = BeautifulSoup(response, "html.parser")
+            table = daily_soap.find("table", "mojo-body-table")
+            if table:
+                table_rows = table.find_all("tr")
+                return table_rows
+            else:
+                print("We couldn't find any result for this")
+                return None
+        except Exception as e:
+            print(f"Error occurred: {e} Check Your Connection or wait  afew Second")
+
+    def get_daily(self, date: str):
 
         """
         getting information about daily box office information
         :param date: a date object with format like this: 2023-09-21 must not be in future
         :return: a list of dictionary's contains movie information
         """
-        validator = Validator()
-        validator.check_daily(date)
-        if validator.is_valued:
-            wanted_date = validator.result
+        self.validate.check_daily(date)
+        if self.validate.is_valued:
+            wanted_date = self.validate.result
             daily_url = f"https://www.boxofficemojo.com/date/{str(wanted_date)}/?ref_=bo_di_table_1"
-            result = self._collect_daily(url=daily_url)
-            return result
+            if self.check_results(url=daily_url):
+                soap = self.check_results(url=daily_url)
+                result = self._collect_data(soap=soap)
+                if self._output_format == "DF":
+                    df = pd.DataFrame(result)
+                    return df
+                return result
 
     def get_weekend(self, year: int, week: int):
         """
@@ -42,24 +63,33 @@ class BoxOffice:
         :param week: week you want to get information from must be a positive integer number between 1 and 52
         :return: a list of dictionary's contains movie information
         """
-        validator = Validator()
-        if validator.check_weekly(year=year, week=week):
+        if self.validate.check_weekly(year=year, week=week):
             weekend_url = f"https://www.boxofficemojo.com/weekend/{year}W{week}/?ref_=bo_wey_table_5"
-            result = self._collect_weekend(url=weekend_url)
-            return result
+            if self.check_results(url=weekend_url):
+                soap = self.check_results(url=weekend_url)
+                result = self._collect_data(soap=soap)
+                if self._output_format == "DF":
+                    df = pd.DataFrame(result)
+                    return df
+                return result
 
     def get_weekly(self, year: int, week: int):
         """
         get weekly information about box office
         :param year: year you want to get the information from must be a positive integer between 1982, and current year
-        :param week: week you want to get information from must be a positive integer number btween 1 and 52
+        :param week: week you want to get information from must be a positive integer number between 1 and 52
         :return: a list of dictionary's contains movie information
         """
         validator = Validator()
         if validator.check_weekly(year=year, week=week):
             weekly_url = f"https://www.boxofficemojo.com/weekly/{year}W{week}/?ref_=bo_wly_table_1"
-            result = self._collect_weekly(url=weekly_url)
-            return result
+            if self.check_results(url=weekly_url):
+                soap = self.check_results(url=weekly_url)
+                result = self._collect_data(soap=soap)
+                if self._output_format == "DF":
+                    df = pd.DataFrame(result)
+                    return df
+                return result
 
     def get_monthly(self, year: int, month: int):
         """
@@ -72,8 +102,14 @@ class BoxOffice:
         if validator.check_monthly(year=year, month=month):
             str_month = calendar.month_name[month].lower()
             monthly_url = f"https://www.boxofficemojo.com/month/{str_month}/{year}/?ref_=bo_ml_table_1"
-            result = self._collect_month_year_(url=monthly_url)
-            return result
+            if self.check_results(url=monthly_url):
+                soap = self.check_results(url=monthly_url)
+                result = self._collect_data(soap=soap)
+                if self._output_format == "DF":
+                    df = pd.DataFrame(result)
+                    return df
+
+                return result
 
     def get_season(self, year: int, season: str):
         """
@@ -85,8 +121,13 @@ class BoxOffice:
         validator = Validator()
         if validator.season_validate(year=year, season=season):
             season_url = f"https://www.boxofficemojo.com/season/{season.lower()}/{year}/?ref_=bo_sl_table_1"
-            result = self._collect_month_year_(url=season_url)
-            return result
+            if self.check_results(url=season_url):
+                soap = self.check_results(url=season_url)
+                result = self._collect_data(soap=soap)
+                if self._output_format == "DF":
+                    df = pd.DataFrame(result)
+                    return df
+                return result
 
     def get_quarterly(self, quarterly: int, year: int):
         """
@@ -100,8 +141,13 @@ class BoxOffice:
         validator.check_quarterly(q=quarterly, year=year)
         if validator.is_valued:
             quarterly_url = f"https://www.boxofficemojo.com/quarter/q{quarterly}/{year}/?ref_=bo_ql_table_1"
-            result = self._collect_month_year_(url=quarterly_url)
-            return result
+            soap = self.check_results(url=quarterly_url)
+            if soap:
+                result = self._collect_data(soap=soap)
+                if self._output_format == "DF":
+                    df = pd.DataFrame(result)
+                    return df
+                return result
 
     def get_yearly(self, year: int):
         """
@@ -113,302 +159,42 @@ class BoxOffice:
         validator.validate_year(year=year)
         if validator.is_valued:
             yearly_url = f"https://www.boxofficemojo.com/year/{year}/?ref_=bo_yl_table_1"
-            result = self._collect_month_year_(url=yearly_url)
-            return result
+            soap = self.check_results(url=yearly_url)
+            if soap:
+                result = self._collect_data(soap=soap)
+                if self._output_format == "DF":
+                    df = pd.DataFrame(result)
+                    return df
+                return result
 
-    def _collect_daily(self, url):
-        self._output = []
-        try:
-            response = requests.get(url).text
-            daily_soap = BeautifulSoup(response, "html.parser")
-            table = daily_soap.find("table", "mojo-body-table")
-            table_rows = table.find_all("tr")
+    def _collect_data(self, soap):
+        headers = []
+        requests_cache = {}  # Cache API requests to avoid duplicates
 
-            for index, row in enumerate(table_rows[:11]):
-                if index != 0:
-                    td_element = row.find_all("td")
-                    local_list = []
-                    for td in td_element:
+        for index, row in enumerate(soap):
+            if index == 0:
+                th_element = row.find_all("th")
+                headers = [th.get_text().replace("\n", "") for th in th_element if "hidden" not in str(th)]
+            else:
+                td_element = row.find_all("td")
+                local_list = [td.get_text().replace("\n", "") for td in td_element if "hidden" not in str(td)]
+                if len(local_list) < 3:
+                    continue  # Skip rows with insufficient data
+                title = local_list[2]
+                local_dict = {header: local_list[i] for i, header in enumerate(headers)}
 
-                        if "hidden" not in str(td):
-                            td_text = td.get_text()
-                            local_list.append(td_text)
-
+                if title not in requests_cache:
                     if self._api_key is not None:
-                        title = local_list[2]
                         api_url = f"https://www.omdbapi.com/?t={title}&apikey={self._api_key}"
-                        time.sleep(1)
-                        api_response = requests.get(api_url).json()
-
-                        local_dict = {
-
-                            "rank": local_list[0],
-                            "previous day rank": local_list[1],
-                            "title": title,
-                            "daily gross": local_list[3],
-                            "gross change daily": local_list[4],
-                            "gross change week": local_list[5],
-                            "theaters": local_list[6],
-                            "per theaters avg gross": local_list[7],
-                            "gross to date": local_list[8],
-                            "number of days release": local_list[9],
-                            "Distributor": local_list[10].replace("\n\n", ""),
-                            "BoxOffice": api_response['BoxOffice'],
-                            "Released": api_response['Released'],
-                            "Runtime": api_response['Runtime'],
-                            "Genre": api_response['Genre'],
-                            "Director": api_response['Director'],
-                            "Writer": api_response['Writer'],
-                            "Actors": api_response['Actors'],
-                            "description": api_response['Plot'],
-                            "Country": api_response['Country'],
-                            "Awards": api_response['Awards'],
-                            "Poster": api_response['Poster'],
-                            "imdbRating": api_response['imdbRating'],
-                            "imdbID": api_response['imdbID'],
-
-                        }
-                        self._output.append(local_dict)
+                        with concurrent.futures.ThreadPoolExecutor() as executor:
+                            api_response = executor.submit(requests.get, api_url).result().json()
+                        requests_cache[title] = api_response
                     else:
-                        local_dict = {
+                        requests_cache[title] = {}
 
-                            "rank": local_list[0],
-                            "previous day rank": local_list[1],
-                            "title": local_list[2],
-                            "daily gross": local_list[3],
-                            "gross change daily": local_list[4],
-                            "gross change week": local_list[5],
-                            "theaters": local_list[6],
-                            "per theaters avg gross": local_list[7],
-                            "gross to date": local_list[8],
-                            "number of days release": local_list[9],
-                            "Distributor": local_list[10].replace("\n\n", ""),
+                for key, val in requests_cache[title].items():
+                    local_dict[key] = val
 
-                        }
-                        self._output.append(local_dict)
+                self._output.append(local_dict)
 
-            return self._output
-        except Exception as e:
-            print(f"Error occurred: {e} Check Your Connection or wait  afew Second")
-
-    def _collect_weekend(self, url):
-        self._output = []
-        try:
-            response = requests.get(url).text
-            daily_soap = BeautifulSoup(response, "html.parser")
-            table = daily_soap.find("table", "mojo-body-table")
-            table_rows = table.find_all("tr")
-
-            for index, row in enumerate(table_rows[:11]):
-                if index != 0:
-                    td_element = row.find_all("td")
-                    local_list = []
-                    for td in td_element:
-
-                        if "hidden" not in str(td):
-                            td_text = td.get_text()
-                            local_list.append(td_text)
-
-                    if self._api_key is not None:
-                        title = local_list[2]
-                        api_url = f"https://www.omdbapi.com/?t={title}&apikey={self._api_key}"
-                        time.sleep(1)
-                        api_response = requests.get(api_url).json()
-
-                        local_dict = {
-
-                            "rank": local_list[0],
-                            "previous week rank": local_list[1],
-                            "title": title,
-                            "weekend gross": local_list[3],
-                            "gross change/week": local_list[4],
-                            "theaters": local_list[5],
-                            "number of theaters change": local_list[6],
-                            "per theatre avg gross": local_list[7],
-                            "total gross": local_list[8],
-                            "weeks": local_list[9],
-                            "Distributor": local_list[10].replace("\n\n", ""),
-                            "BoxOffice": api_response['BoxOffice'],
-                            "Released": api_response['Released'],
-                            "Runtime": api_response['Runtime'],
-                            "Genre": api_response['Genre'],
-                            "Director": api_response['Director'],
-                            "Writer": api_response['Writer'],
-                            "Actors": api_response['Actors'],
-                            "description": api_response['Plot'],
-                            "Country": api_response['Country'],
-                            "Awards": api_response['Awards'],
-                            "Poster": api_response['Poster'],
-                            "imdbRating": api_response['imdbRating'],
-                            "imdbID": api_response['imdbID'],
-
-                        }
-                        self._output.append(local_dict)
-                    else:
-                        local_dict = {
-
-                            "rank": local_list[0],
-                            "previous week rank": local_list[1],
-                            "title": local_list[2],
-                            "weekend gross": local_list[3],
-                            "gross change/week": local_list[4],
-                            "theaters": local_list[5],
-                            "number of theaters change": local_list[6],
-                            "per theatre avg gross": local_list[7],
-                            "total gross": local_list[8],
-                            "weeks": local_list[9],
-                            "Distributor": local_list[10].replace("\n\n", ""),
-
-                        }
-                        self._output.append(local_dict)
-
-
-            return self._output
-
-        except Exception as e:
-            print(f"Error occurred: {e} Check Your Connection or wait  afew Second")
-
-    def _collect_weekly(self, url):
-        self._output = []
-        try:
-            response = requests.get(url).text
-            daily_soap = BeautifulSoup(response, "html.parser")
-            table = daily_soap.find("table", "mojo-body-table")
-            table_rows = table.find_all("tr")
-
-            for index, row in enumerate(table_rows[:11]):
-                if index != 0:
-                    td_element = row.find_all("td")
-                    local_list = []
-                    for td in td_element:
-
-                        if "hidden" not in str(td):
-                            td_text = td.get_text()
-                            local_list.append(td_text)
-
-                    if self._api_key is not None:
-                        title = local_list[2]
-                        api_url = f"https://www.omdbapi.com/?t={title}&apikey={self._api_key}"
-                        time.sleep(1)
-                        api_response = requests.get(api_url).json()
-
-                        local_dict = {
-
-                            "rank": local_list[0],
-                            "previous week rank": local_list[1],
-                            "title": title,
-                            "weekly gross": local_list[3],
-                            "gross change/week": local_list[4],
-                            "theaters": local_list[5],
-                            "number of theaters change": local_list[6],
-                            "per theatre avg gross": local_list[7],
-                            "total gross": local_list[8],
-                            "weeks": local_list[9],
-                            "Distributor": local_list[10].replace("\n\n", ""),
-                            "BoxOffice": api_response['BoxOffice'],
-                            "Released": api_response['Released'],
-                            "Runtime": api_response['Runtime'],
-                            "Genre": api_response['Genre'],
-                            "Director": api_response['Director'],
-                            "Writer": api_response['Writer'],
-                            "Actors": api_response['Actors'],
-                            "description": api_response['Plot'],
-                            "Country": api_response['Country'],
-                            "Awards": api_response['Awards'],
-                            "Poster": api_response['Poster'],
-                            "imdbRating": api_response['imdbRating'],
-                            "imdbID": api_response['imdbID'],
-
-                        }
-
-                        self._output.append(local_dict)
-                    else:
-                        local_dict = {
-
-                            "rank": local_list[0],
-                            "previous week rank": local_list[1],
-                            "title": local_list[2],
-                            "weekly gross": local_list[3],
-                            "gross change/week": local_list[4],
-                            "theaters": local_list[5],
-                            "number of theaters change": local_list[6],
-                            "per theatre avg gross": local_list[7],
-                            "total gross": local_list[8],
-                            "weeks": local_list[9],
-                            "Distributor": local_list[10].replace("\n\n", ""),
-
-                        }
-                        self._output.append(local_dict)
-
-            return self._output
-        except Exception as e:
-            print(f"Error occurred: {e} Check Your Connection or wait  afew Second")
-
-    def _collect_month_year_(self, url):
-        self._output = []
-        try:
-            response = requests.get(url).text
-            daily_soap = BeautifulSoup(response, "html.parser")
-            table = daily_soap.find("table", "mojo-body-table")
-            table_rows = table.find_all("tr")
-
-            for index, row in enumerate(table_rows[:11]):
-                if index != 0:
-                    td_element = row.find_all("td")
-                    local_list = []
-                    for td in td_element:
-
-                        if "hidden" not in str(td):
-                            td_text = td.get_text()
-                            local_list.append(td_text)
-
-                    if self._api_key is not None:
-                        title = local_list[1]
-                        api_url = f"https://www.omdbapi.com/?t={title}&apikey={self._api_key}"
-                        time.sleep(1)
-                        api_response = requests.get(api_url).json()
-
-                        local_dict = {
-
-                            "rank": local_list[0],
-                            "title": local_list[1],
-                            "gross": local_list[2],
-                            "theaters": local_list[3],
-                            "total_gross": local_list[4],
-                            "release date": local_list[5],
-                            "Distributor": local_list[6].replace("\n\n", ""),
-                            "BoxOffice": api_response['BoxOffice'],
-                            "Released": api_response['Released'],
-                            "Runtime": api_response['Runtime'],
-                            "Genre": api_response['Genre'],
-                            "Director": api_response['Director'],
-                            "Writer": api_response['Writer'],
-                            "Actors": api_response['Actors'],
-                            "description": api_response['Plot'],
-                            "Country": api_response['Country'],
-                            "Awards": api_response['Awards'],
-                            "Poster": api_response['Poster'],
-                            "imdbRating": api_response['imdbRating'],
-                            "imdbID": api_response['imdbID'],
-
-                        }
-                        self._output.append(local_dict)
-                    else:
-                        local_dict = {
-
-                            "rank": local_list[0],
-                            "title": local_list[1],
-                            "gross": local_list[2],
-                            "theaters": local_list[3],
-                            "total_gross": local_list[4],
-                            "release date": local_list[5],
-                            "Distributor": local_list[6].replace("\n\n", ""),
-
-                        }
-                        self._output.append(local_dict)
-
-            return self._output
-        except Exception as e:
-            print(f"Error occurred: {e} Check Your Connection or wait  afew Second")
-
-
+        return self._output

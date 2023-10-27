@@ -3,7 +3,7 @@ from setuptools import setup
 with open("Readme.md", "r") as f:
     long_description = f.read()
 
-VERSION = '0.3'
+VERSION = '0.4'
 DESCRIPTION = 'Box Office Mojo Information'
 # Setting up
 setup(
@@ -16,7 +16,7 @@ setup(
     long_description=long_description,
     url="https://github.com/Stink-Po/boxoffice_api",
     packages=["boxoffice_api"],
-    install_requires=['requests', 'bs4'],
+    install_requires=['requests', 'bs4', 'pandas'],
     keywords=['python', 'movie', 'movies', 'boxoffice_api', 'box office', 'scraping'],
     classifiers=[
         "Development Status :: 1 - Planning",
