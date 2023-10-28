@@ -1,8 +1,9 @@
-from boxoffice_api.boxoffice_api.validator import Validator
+from .validator import Validator
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
 import concurrent.futures
+import calendar
 
 
 class BoxOffice:
@@ -20,7 +21,7 @@ class BoxOffice:
         self._api_key = api_key
         self._output = []
         self._output_format = outputformat
-        self.validate = Validator()
+        self._validate = Validator()
 
     @staticmethod
     def check_results(url):
@@ -44,9 +45,9 @@ class BoxOffice:
         :param date: a date object with format like this: 2023-09-21 must not be in future
         :return: a list of dictionary's contains movie information
         """
-        self.validate.check_daily(date)
-        if self.validate.is_valued:
-            wanted_date = self.validate.result
+        self._validate.check_daily(date)
+        if self._validate.is_valued:
+            wanted_date = self._validate.result
             daily_url = f"https://www.boxofficemojo.com/date/{str(wanted_date)}/?ref_=bo_di_table_1"
             if self.check_results(url=daily_url):
                 soap = self.check_results(url=daily_url)
@@ -63,7 +64,7 @@ class BoxOffice:
         :param week: week you want to get information from must be a positive integer number between 1 and 52
         :return: a list of dictionary's contains movie information
         """
-        if self.validate.check_weekly(year=year, week=week):
+        if self._validate.check_weekly(year=year, week=week):
             weekend_url = f"https://www.boxofficemojo.com/weekend/{year}W{week}/?ref_=bo_wey_table_5"
             if self.check_results(url=weekend_url):
                 soap = self.check_results(url=weekend_url)
@@ -168,6 +169,7 @@ class BoxOffice:
                 return result
 
     def _collect_data(self, soap):
+        self._output = []
         headers = []
         requests_cache = {}  # Cache API requests to avoid duplicates
 

@@ -3,12 +3,13 @@ from setuptools import setup
 with open("Readme.md", "r") as f:
     long_description = f.read()
 
-VERSION = '0.4'
+VERSION = '1.1'
 DESCRIPTION = 'Box Office Mojo Information'
 # Setting up
 setup(
     name="boxoffice_api",
     version=VERSION,
+    include_package_data=True,
     author="Pourya Mohamadi",
     author_email="fresh.pourya@gmail.com",
     description="Unofficial Python API for Box Office Mojo",
