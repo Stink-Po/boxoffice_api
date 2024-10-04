@@ -1,5 +1,5 @@
 ### **Unofficial Python API for Box Office Mojo**
-
+### **Please give package a start if you use it in your projects**
 **update Note**
 you can now get a panda Dataframe as output
 
