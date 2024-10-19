@@ -3,7 +3,7 @@ from setuptools import setup
 with open("Readme.md", "r") as f:
     long_description = f.read()
 
-VERSION = '1.2.1'
+VERSION = '1.2.2'
 
 DESCRIPTION = 'Box Office Mojo Information'
 # Setting up

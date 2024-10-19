@@ -83,7 +83,7 @@ class BoxOffice:
         """
         validator = Validator()
         if validator.check_weekly(year=year, week=week):
-            if len(week) == 1 :
+            if len(str(week)) == 1 :
                 week = f"0{str(week)}"
             weekly_url = f"https://www.boxofficemojo.com/weekly/{year}W{week}/?ref_=bo_wly_table_1"
             if self.check_results(url=weekly_url):
