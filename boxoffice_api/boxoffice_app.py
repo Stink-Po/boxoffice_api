@@ -65,7 +65,7 @@ class BoxOffice:
         :return: a list of dictionary's contains movie information
         """
         if self._validate.check_weekly(year=year, week=week):
-            weekend_url = f"https://www.boxofficemojo.com/weekend/{year}W{week}/?ref_=bo_wey_table_5"
+            weekend_url = f"https://www.boxofficemojo.com/weekend/{year}W{week:02}/?ref_=bo_wey_table_5"
             if self.check_results(url=weekend_url):
                 soap = self.check_results(url=weekend_url)
                 result = self._collect_data(soap=soap)
@@ -85,7 +85,7 @@ class BoxOffice:
         if validator.check_weekly(year=year, week=week):
             if len(str(week)) == 1 :
                 week = f"0{str(week)}"
-            weekly_url = f"https://www.boxofficemojo.com/weekly/{year}W{week}/?ref_=bo_wly_table_1"
+            weekly_url = f"https://www.boxofficemojo.com/weekly/{year}W{week:02}/?ref_=bo_wly_table_1"
             if self.check_results(url=weekly_url):
                 soap = self.check_results(url=weekly_url)
                 result = self._collect_data(soap=soap)
