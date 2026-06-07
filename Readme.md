@@ -1,3 +1,5 @@
+[![Downloads](https://static.pepy.tech/badge/boxoffice_api)](https://pepy.tech/project/boxoffice_api)
+
 ### **Unofficial Python API for Box Office Mojo**
 ### **Please give package a start if you use it in your projects**
 **update Note**
